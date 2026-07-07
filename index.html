@@ -3,24 +3,13 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>河南农业大学假期留校人员出入管理系统</title>
+  <title>扫描通行 - 河南农业大学假期留校人员出入管理系统</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="description" content="河南农业大学假期留校人员出入管理系统">
+  <meta name="description" content="扫描宿舍通行二维码进入假期留校人员出入管理系统">
   <style>
     :root {
-      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-      --theme-card-bg: #ffffff;
-      --theme-card-border: rgba(0, 0, 0, 0.08);
-      --theme-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-      --nav-bg: #1e293b;
-    }
-
-    /* 允许留校状态 - 浅绿色背景 */
-    body.status-allowed {
-      --status-page-bg: #f2fff5;
       --status-primary: #34c759;
-      /* iOS 经典绿 */
-      --status-primary-bg: rgba(52, 199, 89, 0.12);
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
     }
 
     *,
@@ -36,9 +25,9 @@
     body {
       height: 100%;
       font-family: var(--font-family);
-      background-color: var(--status-page-bg);
-      transition: background-color 0.3s ease;
-      /* 防偷：禁止长按选中、禁止系统默认的长按弹出菜单 */
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow: hidden;
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
@@ -48,685 +37,145 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      position: relative;
-      overflow-x: hidden;
-      color: #000000;
-    }
-
-    /* === 顶部导航栏 (适配新版绿色字体 Logo) === */
-    .nav-bar {
-      background: #ffffff;
-      /* 纯白背景以凸显绿色 Logo */
-      width: 100%;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
       justify-content: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-      /* 适配刘海屏 */
-      padding-top: calc(14px + env(safe-area-inset-top));
-    }
-
-    .henau-logo {
-      height: 36px;
-      margin-right: 12px;
-    }
-
-    .nav-title {
-      color: #333333;
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .page-wrapper {
-      width: 100%;
-      max-width: 500px;
-      padding: 20px 16px;
-      padding-bottom: calc(20px + env(safe-area-inset-bottom));
-      flex: 1;
-    }
-
-    /* === iOS 卡片风格 === */
-    .ios-card {
-      background: #ffffff;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.04);
-      overflow: hidden;
-    }
-
-    /* === 防伪动态时钟 === */
-    .time-container {
-      text-align: center;
-      padding: 16px 16px 20px;
-    }
-
-    .clock-label {
-      font-size: 12px;
-      color: #8e8e93;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-    }
-
-    .clock-time {
-      font-family: 'SF Pro Rounded', ui-rounded, 'Arial Rounded MT Bold', 'DIN Alternate', 'Trebuchet MS', sans-serif;
-      font-size: 64px;
-      font-weight: 600;
-      letter-spacing: -1px;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-      margin-bottom: 6px;
-
-      /* 数字流动扫光特效 */
-      background: linear-gradient(110deg, #111111 30%, var(--status-primary) 50%, #111111 70%);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: text-shine 3s linear infinite;
-    }
-
-    @keyframes text-shine {
-      to {
-        background-position: -200% center;
-      }
-    }
-
-    .clock-time .colon {
+      padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
       position: relative;
-      top: -4px;
-      -webkit-text-fill-color: var(--status-primary);
-      animation: blink 1s step-end infinite;
     }
 
-    @keyframes blink {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.15;
-      }
+    .logo-wrap {
+      text-align: center;
+      margin-bottom: 24px;
     }
 
-    .clock-date {
-      font-size: 15px;
-      color: #8e8e93;
-    }
-
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--status-primary-bg);
-      padding: 5px 12px;
-      border-radius: 12px;
+    .logo {
+      height: 40px;
       margin-bottom: 12px;
-      font-size: 12px;
+    }
+
+    .title {
+      font-size: 18px;
       font-weight: 600;
-      color: var(--status-primary);
-    }
-
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--status-primary);
-      animation: pulse 1.4s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-
-      50% {
-        transform: scale(1.5);
-        opacity: 0.4;
-      }
-    }
-
-    /* === 状态横幅 === */
-    .status-card {
-      display: flex;
-      align-items: center;
-      padding: 18px 20px;
-      gap: 16px;
-    }
-
-    .status-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 50%;
-      background: var(--status-primary);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      box-shadow: 0 4px 10px var(--status-primary-bg);
-    }
-
-    .status-content {
-      flex: 1;
-    }
-
-    .status-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--status-primary);
-      margin-bottom: 2px;
-    }
-
-    .status-subtitle {
-      font-size: 13px;
-      color: #8e8e93;
-      line-height: 1.4;
-    }
-
-    /* === 分组列表 (人员信息、起止时间) === */
-    .section-title {
-      font-size: 13px;
-      font-weight: bold;
-      color: #6d6d72;
-      text-transform: uppercase;
-      margin: 0 0 6px 16px;
-    }
-
-    .list-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .list-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      position: relative;
-    }
-
-    /* iOS 分割线风格：仅从内容起始处开始 */
-    .list-row:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 20px;
-      right: 0;
-      height: 0.5px;
-      background: #c6c6c8;
-    }
-
-    .list-label {
-      font-size: 16px;
-      color: #000000;
-      white-space: nowrap;
-    }
-
-    .list-value {
-      font-size: 16px;
-      color: #8e8e93;
-      text-align: right;
-      word-break: break-word;
-      padding-left: 16px;
-    }
-
-    .list-value.accent {
-      color: var(--status-primary);
-      font-weight: 500;
-    }
-
-    .list-value.placeholder {
-      color: #c7c7cc;
-      font-style: italic;
-    }
-
-    /* === Footer === */
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: #8e8e93;
-      margin-top: 10px;
-    }
-
-    .edit-link {
-      display: inline-block;
-      margin-top: 6px;
-      color: var(--status-primary);
-      font-weight: 600;
-      cursor: pointer;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    .edit-link:active {
-      opacity: 0.6;
-    }
-
-    /* === 动态防伪机制 === */
-    .watermark-overlay {
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      pointer-events: none;
-      z-index: 9999;
-      background-repeat: repeat;
-      animation: watermark-scroll 15s linear infinite;
-    }
-
-    @keyframes watermark-scroll {
-      0% {
-        background-position: 0 0;
-      }
-
-      100% {
-        background-position: -240px -180px;
-      }
-    }
-
-    /* 时间卡片动态波浪（流体）特效 */
-    .time-container {
-      position: relative;
-      overflow: hidden;
-      z-index: 1;
-    }
-
-    .time-container::before,
-    .time-container::after {
-      content: '';
-      position: absolute;
-      width: 800px;
-      height: 800px;
-      bottom: -730px;
-      left: 50%;
-      background: var(--status-primary);
-      opacity: 0.05;
-      border-radius: 43%;
-      animation: wave-flow 8s linear infinite;
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    .time-container::after {
-      border-radius: 40%;
-      opacity: 0.08;
-      animation: wave-flow 12s linear infinite;
-    }
-
-    @keyframes wave-flow {
-      0% {
-        transform: translateX(-50%) rotate(0deg);
-      }
-
-      100% {
-        transform: translateX(-50%) rotate(360deg);
-      }
-    }
-
-    /* 毫秒数字样式 */
-    .clock-time .ms-dot {
-      -webkit-text-fill-color: var(--status-primary);
-      margin-left: 2px;
-      font-size: 32px;
-    }
-
-    .clock-time .ms-text {
-      font-size: 32px;
-      -webkit-text-fill-color: var(--status-primary);
-      font-weight: 700;
-    }
-
-    /* === 入场动画 === */
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(15px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .nav-bar {
-      animation: fadeUp 0.3s ease both;
-    }
-
-    /* === 交互式触摸涟漪防伪 === */
-    .touch-ripple {
-      position: fixed;
-      border: 2px solid var(--status-primary);
-      border-radius: 50%;
-      transform: scale(0.2);
-      animation: touch-ripple-anim 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-      pointer-events: none;
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .touch-ripple .ripple-text {
-      color: var(--status-primary);
-      font-size: 14px;
-      font-weight: 600;
-      white-space: nowrap;
-      opacity: 0.9;
-    }
-
-    @keyframes touch-ripple-anim {
-      0% {
-        transform: scale(0.2);
-        opacity: 1;
-        border-width: 4px;
-      }
-
-      100% {
-        transform: scale(3.5);
-        opacity: 0;
-        border-width: 0px;
-      }
-    }
-
-    .page-wrapper>div:nth-child(1) {
-      animation: fadeUp 0.4s ease 0.05s both;
-    }
-
-    .page-wrapper>div:nth-child(2) {
-      animation: fadeUp 0.4s ease 0.10s both;
-    }
-
-    .page-wrapper>div:nth-child(3) {
-      animation: fadeUp 0.4s ease 0.15s both;
-    }
-
-    .page-wrapper>div:nth-child(4) {
-      animation: fadeUp 0.4s ease 0.20s both;
-    }
-
-    .page-wrapper>div:nth-child(5) {
-      animation: fadeUp 0.4s ease 0.25s both;
-    }
-
-    .page-wrapper>div:nth-child(6) {
-      animation: fadeUp 0.4s ease 0.30s both;
-    }
-
-    /* === 信息录入弹窗 === */
-    .modal-mask {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      -webkit-backdrop-filter: blur(6px);
-      backdrop-filter: blur(6px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10001;
-      padding: 20px;
-      opacity: 0;
-      animation: modal-in 0.25s ease forwards;
-    }
-
-    .modal-mask.hidden {
-      display: none;
-    }
-
-    @keyframes modal-in {
-      to {
-        opacity: 1;
-      }
-    }
-
-    .modal-card {
-      background: #ffffff;
-      border-radius: 14px;
-      width: 100%;
-      max-width: 380px;
-      max-height: 85vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-      transform: scale(0.92);
-      animation: modal-scale 0.25s ease forwards;
-    }
-
-    @keyframes modal-scale {
-      to {
-        transform: scale(1);
-      }
-    }
-
-    .modal-head {
-      padding: 20px 16px 8px;
-      text-align: center;
-    }
-
-    .modal-title {
-      font-size: 17px;
-      font-weight: 600;
-      color: #000000;
-    }
-
-    .modal-desc {
-      font-size: 12px;
-      color: #8e8e93;
-      margin-top: 6px;
-      line-height: 1.5;
-    }
-
-    .modal-body {
-      padding: 12px 16px 0;
-    }
-
-    .field {
-      margin-bottom: 14px;
-    }
-
-    .field-label {
-      display: block;
-      font-size: 12px;
-      color: #6d6d72;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-
-    .field-input,
-    .field-select {
-      width: 100%;
-      padding: 11px 12px;
-      font-size: 15px;
-      font-family: inherit;
-      border: 1px solid #e5e5ea;
-      border-radius: 8px;
-      background: #f9f9f9;
-      color: #000000;
-      outline: none;
-      -webkit-appearance: none;
-      appearance: none;
-      transition: border-color 0.2s, background 0.2s;
-      -webkit-user-select: text;
-      user-select: text;
-    }
-
-    .field-input:focus,
-    .field-select:focus {
-      border-color: var(--status-primary);
-      background: #ffffff;
-    }
-
-    .field-input::placeholder {
-      color: #c7c7cc;
-    }
-
-    .field-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .field-row .field {
-      flex: 1;
-    }
-
-    .modal-foot {
-      display: flex;
-      gap: 10px;
-      padding: 16px 16px 18px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 9px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: opacity 0.2s;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    .btn:active {
-      opacity: 0.7;
-    }
-
-    .btn-primary {
-      background: var(--status-primary);
-      color: #ffffff;
-    }
-
-    .btn-secondary {
-      background: #f2f2f7;
-      color: #007aff;
-    }
-
-    /* === 扫描通行卡片 === */
-    .scan-card {
-      background: linear-gradient(135deg, #34c759 0%, #2aa0e0 100%);
-      border-radius: 14px;
-      padding: 22px 18px;
-      margin-bottom: 20px;
-      text-align: center;
-      box-shadow: 0 6px 18px rgba(52, 199, 89, 0.28);
-      animation: fadeUp 0.4s ease 0.18s both;
-    }
-
-    .scan-card .scan-sub {
-      color: rgba(255, 255, 255, 0.92);
-      font-size: 12px;
-      margin-bottom: 14px;
       letter-spacing: 0.5px;
     }
 
-    .scan-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      color: #34c759;
-      border: none;
-      border-radius: 999px;
-      padding: 14px 26px;
-      font-size: 16px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transition: transform 0.15s;
-      -webkit-user-select: none;
-      user-select: none;
+    .subtitle {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 6px;
     }
 
-    .scan-btn:active {
-      transform: scale(0.96);
-    }
-
-    .scan-btn svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    /* === 扫描模态 === */
-    .scan-mask {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.92);
-      z-index: 10002;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .scan-mask.hidden {
-      display: none;
-    }
-
-    .scan-head {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      padding: calc(14px + env(safe-area-inset-top)) 16px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: #ffffff;
-    }
-
-    .scan-title {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .scan-close {
-      background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      border: none;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      font-size: 20px;
-      line-height: 1;
-      cursor: pointer;
-      -webkit-user-select: none;
-      user-select: none;
+    .scan-stage {
+      position: relative;
+      width: 80vw;
+      max-width: 360px;
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 0 2px rgba(52, 199, 89, 0.5), 0 12px 40px rgba(0, 0, 0, 0.6);
     }
 
     #qr-reader {
-      width: 88vw;
-      max-width: 420px;
-      border-radius: 14px;
-      overflow: hidden;
+      width: 100%;
+      height: 100%;
     }
 
     #qr-reader video {
-      border-radius: 14px;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
+      display: block;
     }
 
-    .scan-tip {
-      margin-top: 18px;
-      color: rgba(255, 255, 255, 0.85);
+    /* 扫描框装饰角 */
+    .scan-stage::before,
+    .scan-stage::after {
+      content: '';
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--status-primary);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .scan-stage::before {
+      top: 12px;
+      left: 12px;
+      border-right: none;
+      border-bottom: none;
+      border-top-left-radius: 6px;
+    }
+
+    .scan-stage::after {
+      bottom: 12px;
+      right: 12px;
+      border-left: none;
+      border-top: none;
+      border-bottom-right-radius: 6px;
+    }
+
+    .tip {
+      margin-top: 22px;
       font-size: 13px;
+      color: rgba(255, 255, 255, 0.78);
       text-align: center;
-      padding: 0 24px;
+      min-height: 18px;
     }
 
-    /* === Toast === */
+    /* 手势/重试覆盖层（iOS 需用户手势触发摄像头） */
+    .tap-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.97);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      cursor: pointer;
+    }
+
+    .tap-mask.hidden {
+      display: none;
+    }
+
+    .tap-card {
+      text-align: center;
+      padding: 0 30px;
+    }
+
+    .tap-icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+
+    .tap-text {
+      font-size: 15px;
+      color: #ffffff;
+      font-weight: 500;
+      max-width: 300px;
+      line-height: 1.6;
+      white-space: pre-line;
+      margin: 0 auto;
+    }
+
+    .tap-btn {
+      display: inline-block;
+      margin-top: 22px;
+      padding: 13px 36px;
+      background: var(--status-primary);
+      color: #ffffff;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 6px 18px rgba(52, 199, 89, 0.4);
+    }
+
+    .tap-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Toast */
     .toast {
       position: fixed;
       left: 50%;
@@ -734,16 +183,17 @@
       transform: translate(-50%, 20px);
       background: rgba(0, 0, 0, 0.88);
       color: #ffffff;
-      padding: 12px 20px;
+      padding: 12px 22px;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 500;
-      z-index: 10003;
+      z-index: 100;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease, transform 0.25s ease;
       max-width: 86vw;
       text-align: center;
+      white-space: pre-line;
     }
 
     .toast.show {
@@ -761,176 +211,26 @@
   </style>
 </head>
 
-<body class="status-allowed">
-  <!-- 全屏动态防伪水印 -->
-  <div class="watermark-overlay"></div>
-
-  <!-- iOS 风格深色导航栏，保证白色 Logo 绝对清晰 -->
-  <div class="nav-bar">
-    <img class="henau-logo" src="./images/henau_top2.png" alt="河南农业大学">
-    <div class="nav-title">假期留校人员出入管理系统</div>
+<body>
+  <div class="logo-wrap">
+    <img class="logo" src="./images/henau_top2.png" alt="河南农业大学">
+    <div class="title">假期留校人员出入管理系统</div>
+    <div class="subtitle">请扫描宿舍通行二维码</div>
   </div>
 
-  <div class="page-wrapper">
-    <!-- 防伪动态时钟 -->
-    <div class="ios-card time-container">
-      <!-- <div class="clock-label">实时时间 · 动态防伪</div> -->
-      <div class="live-badge">
-        <span class="live-dot"></span>
-        <span>LIVE · 请核对时间真实性</span>
-      </div>
-      <div class="clock-time">
-        <span id="clk-h">--</span><span class="colon">:</span><span id="clk-m">--</span><span
-          class="colon">:</span><span id="clk-s">--</span><span class="ms-dot">.</span><span id="clk-ms"
-          class="ms-text">--</span>
-      </div>
-      <div class="clock-date" id="clk-date">加载中...</div>
-
-    </div>
-
-    <!-- 留校状态横幅 -->
-    <div class="ios-card status-card">
-      <div class="status-icon">
-        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2.5" fill="none"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-      </div>
-      <div class="status-content">
-        <div class="status-title">允许留校</div>
-        <div class="status-subtitle">
-          该同学已获批留校资格，当前处于有效期内
-        </div>
-      </div>
-    </div>
-
-    <!-- 扫描宿舍通行二维码 -->
-    <div class="scan-card">
-      <div class="scan-sub">出入请先扫描宿舍通行二维码</div>
-      <button class="scan-btn" id="scan-btn" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-          <path d="M14 14h3v3"></path>
-          <path d="M21 21h-4"></path>
-        </svg>
-        扫描宿舍通行二维码
-      </button>
-    </div>
-
-    <!-- 人员信息 -->
-    <div class="section-title">人员信息</div>
-    <div class="ios-card list-group">
-      <div class="list-row">
-        <span class="list-label">校区</span>
-        <span class="list-value placeholder" id="f-campus">待填写</span>
-      </div>
-      <div class="list-row">
-        <span class="list-label">学院</span>
-        <span class="list-value placeholder" id="f-college">待填写</span>
-      </div>
-      <div class="list-row">
-        <span class="list-label">姓名</span>
-        <span class="list-value placeholder" id="f-name">待填写</span>
-      </div>
-      <div class="list-row">
-        <span class="list-label">类别</span>
-        <span class="list-value placeholder" id="f-category">待填写</span>
-      </div>
-      <div class="list-row">
-        <span class="list-label">宿舍</span>
-        <span class="list-value placeholder" id="f-dorm">待填写</span>
-      </div>
-      <div class="list-row">
-        <span class="list-label">学号</span>
-        <span class="list-value placeholder" id="f-sid">待填写</span>
-      </div>
-    </div>
-
-    <!-- 留校起止时间 -->
-    <div class="section-title">留校起止时间</div>
-    <div class="ios-card list-group">
-      <div class="list-row">
-        <span class="list-label">开始时间</span>
-        <span class="list-value placeholder" id="f-start">待填写</span>
-      </div>
-      <div class="list-row">
-        <span class="list-label">结束时间</span>
-        <span class="list-value placeholder" id="f-end">待填写</span>
-      </div>
-    </div>
-
-    <div class="footer">技术支持：河南农业大学IT工作室</div>
-    <div class="footer"><span id="edit-btn" class="edit-link">修改个人信息</span></div>
-  </div>
-
-  <!-- 信息录入弹窗 -->
-  <div class="modal-mask hidden" id="modal-mask">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div class="modal-title" id="modal-title">请填写留校信息</div>
-        <div class="modal-desc">信息将保存在本设备浏览器中，下次访问无需重复填写。</div>
-      </div>
-      <form class="modal-body" id="info-form" autocomplete="off">
-        <div class="field">
-          <label class="field-label" for="if-name">姓名</label>
-          <input class="field-input" id="if-name" name="name" type="text" required>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="if-sid">学号</label>
-            <input class="field-input" id="if-sid" name="studentId" type="text" inputmode="numeric" required>
-          </div>
-          <div class="field">
-            <label class="field-label" for="if-category">类别</label>
-            <select class="field-select" id="if-category" name="category">
-              <option value="本科生">本科生</option>
-              <option value="研究生">研究生</option>
-              <option value="博士生">博士生</option>
-              <option value="教师">教师</option>
-              <option value="其他">其他</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label class="field-label" for="if-college">学院</label>
-          <input class="field-input" id="if-college" name="college" type="text" required>
-        </div>
-        <div class="field">
-          <label class="field-label" for="if-campus">校区</label>
-          <input class="field-input" id="if-campus" name="campus" type="text" required>
-        </div>
-        <div class="field">
-          <label class="field-label" for="if-dorm">宿舍</label>
-          <input class="field-input" id="if-dorm" name="dorm" type="text" required>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="if-start">开始日期</label>
-            <input class="field-input" id="if-start" name="startDate" type="date" required>
-          </div>
-          <div class="field">
-            <label class="field-label" for="if-end">结束日期</label>
-            <input class="field-input" id="if-end" name="endDate" type="date" required>
-          </div>
-        </div>
-        <div class="modal-foot">
-          <button type="button" class="btn btn-secondary" id="modal-cancel">取消</button>
-          <button type="submit" class="btn btn-primary">保存</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 扫描模态 -->
-  <div class="scan-mask hidden" id="scan-mask">
-    <div class="scan-head">
-      <span class="scan-title">扫描通行二维码</span>
-      <button class="scan-close" id="scan-close" type="button" aria-label="关闭">×</button>
-    </div>
+  <div class="scan-stage">
     <div id="qr-reader"></div>
-    <div class="scan-tip">将二维码对准框内即可自动识别</div>
+  </div>
+
+  <div class="tip" id="tip">正在启动摄像头...</div>
+
+  <!-- 手势/重试覆盖层 -->
+  <div class="tap-mask hidden" id="tap-mask">
+    <div class="tap-card">
+      <div class="tap-icon">📷</div>
+      <div class="tap-text" id="tap-text">点击开始扫描</div>
+      <div class="tap-btn">开始扫描</div>
+    </div>
   </div>
 
   <!-- Toast 提示 -->
@@ -939,173 +239,13 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     (function () {
-      var WEEK = ['日', '一', '二', '三', '四', '五', '六'];
-      var H = document.getElementById('clk-h');
-      var M = document.getElementById('clk-m');
-      var S = document.getElementById('clk-s');
-      var MS = document.getElementById('clk-ms');
-      var D = document.getElementById('clk-date');
-
-      function pad(n) { return n < 10 ? '0' + n : '' + n; }
-
-      function tick() {
-        var now = new Date();
-        H.textContent = pad(now.getHours());
-        M.textContent = pad(now.getMinutes());
-        S.textContent = pad(now.getSeconds());
-
-        // 毫秒防伪 (更新频率加快，显示两位)
-        var msStr = Math.floor(now.getMilliseconds() / 10).toString();
-        if (msStr.length < 2) msStr = '0' + msStr;
-        MS.textContent = msStr;
-
-        D.textContent = now.getFullYear() + ' 年 ' + (now.getMonth() + 1) + ' 月 ' +
-          now.getDate() + ' 日  星期' + WEEK[now.getDay()];
-      }
-
-      tick();
-      setInterval(tick, 47); // 约每秒 21 次的高频刷新，提升防伪动画平滑度
-
-      // === 自定义信息持久化 ===
-      var STORAGE_KEY = 'henau_pass_data_v1';
-      var FIELDS = ['campus', 'college', 'name', 'category', 'dorm', 'studentId', 'startDate', 'endDate'];
-      var FIELD_IDS = {
-        campus: 'f-campus',
-        college: 'f-college',
-        name: 'f-name',
-        category: 'f-category',
-        dorm: 'f-dorm',
-        studentId: 'f-sid',
-        startDate: 'f-start',
-        endDate: 'f-end'
-      };
-      var currentName = '';
-
-      function getData() {
-        try {
-          var d = JSON.parse(localStorage.getItem(STORAGE_KEY));
-          return d && d.name ? d : null;
-        } catch (e) {
-          return null;
-        }
-      }
-
-      function saveData(d) {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-        } catch (e) {
-          // 容错：隐私模式下保存失败不影响当次渲染
-        }
-      }
-
-      function setWatermark(text) {
-        var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='180'>" +
-          "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' " +
-          "transform='rotate(-25 120 90)' font-size='15' fill='black' opacity='0.06' " +
-          "font-weight='600' font-family='system-ui,sans-serif'>" + text + "</text></svg>";
-        var el = document.querySelector('.watermark-overlay');
-        if (el) {
-          el.style.backgroundImage = "url(\"data:image/svg+xml," + encodeURIComponent(svg) + "\")";
-        }
-      }
-
-      function render(d) {
-        FIELDS.forEach(function (k) {
-          var el = document.getElementById(FIELD_IDS[k]);
-          if (el) {
-            el.textContent = d[k] != null && d[k] !== '' ? d[k] : '待填写';
-            if (d[k]) {
-              el.classList.remove('placeholder');
-            } else {
-              el.classList.add('placeholder');
-            }
-          }
-        });
-        currentName = d.name || '';
-        setWatermark((d.name || '') + ' ' + (d.studentId || ''));
-      }
-
-      function fillPlaceholder() {
-        FIELDS.forEach(function (k) {
-          var el = document.getElementById(FIELD_IDS[k]);
-          if (el) {
-            el.textContent = '待填写';
-            el.classList.add('placeholder');
-          }
-        });
-        setWatermark('待填写');
-        currentName = '';
-      }
-
-      // === 弹窗控制 ===
-      var mask = document.getElementById('modal-mask');
-      var form = document.getElementById('info-form');
-      var cancelBtn = document.getElementById('modal-cancel');
-      var titleEl = document.getElementById('modal-title');
-
-      function openModal(pre) {
-        FIELDS.forEach(function (k) {
-          var input = form.elements[k];
-          if (!input) return;
-          if (pre && pre[k] != null) {
-            input.value = pre[k];
-          } else {
-            input.value = '';
-          }
-        });
-        // 首次录入（无既有数据）时隐藏取消按钮，强制填写
-        cancelBtn.style.display = pre ? '' : 'none';
-        titleEl.textContent = pre ? '修改留校信息' : '请填写留校信息';
-        mask.classList.remove('hidden');
-        // 自动聚焦第一个输入框
-        setTimeout(function () {
-          if (form.elements.name) form.elements.name.focus();
-        }, 50);
-      }
-
-      function closeModal() {
-        mask.classList.add('hidden');
-      }
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var data = {};
-        FIELDS.forEach(function (k) {
-          data[k] = (form.elements[k].value || '').trim();
-        });
-        saveData(data);
-        render(data);
-        closeModal();
-      });
-
-      cancelBtn.addEventListener('click', closeModal);
-      document.getElementById('edit-btn').addEventListener('click', function () {
-        openModal(getData());
-      });
-
-      // 点击遮罩空白处关闭（仅在非首次模式）
-      mask.addEventListener('click', function (e) {
-        if (e.target === mask && getData()) {
-          closeModal();
-        }
-      });
-
-      // === 初始化 ===
-      var saved = getData();
-      if (saved) {
-        render(saved);
-      } else {
-        fillPlaceholder();
-        openModal(null);
-      }
-
-      // === 二维码扫描通行 ===
-      var scanBtn = document.getElementById('scan-btn');
-      var scanMask = document.getElementById('scan-mask');
-      var scanClose = document.getElementById('scan-close');
+      var tip = document.getElementById('tip');
+      var tapMask = document.getElementById('tap-mask');
+      var tapText = document.getElementById('tap-text');
       var toastEl = document.getElementById('toast');
       var html5QrCode = null;
       var scanning = false;
+      var jumped = false;
 
       function showToast(text, type) {
         toastEl.textContent = text;
@@ -1118,6 +258,17 @@
         }, 2600);
       }
 
+      function jumpToInfo() {
+        if (jumped) return;
+        jumped = true;
+        stopScan();
+        showToast('✓ 通行验证通过', 'ok');
+        tip.textContent = '正在跳转...';
+        setTimeout(function () {
+          window.location.href = 'info.html';
+        }, 700);
+      }
+
       function stopScan() {
         if (html5QrCode && scanning) {
           scanning = false;
@@ -1127,151 +278,75 @@
         }
       }
 
-      function closeScan() {
-        stopScan();
-        scanMask.classList.add('hidden');
+      function handleStartError(err) {
+        scanning = false;
+        var name = err && err.name;
+        var msg = '点击开始扫描';
+        if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+          msg = '摄像头权限被拒绝\n请在浏览器设置中允许后点击重试';
+        } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+          msg = '未检测到摄像头设备';
+        } else if (name === 'NotReadableError') {
+          msg = '摄像头被其他程序占用\n请关闭后重试';
+        } else if (name === 'NotSupportedError' || name === 'TypeError') {
+          msg = '当前环境不支持摄像头扫描\n需在 HTTPS 环境下访问';
+        }
+        tapText.textContent = msg;
+        tapMask.classList.remove('hidden');
+        tip.textContent = '';
       }
 
       function startScan() {
         if (typeof Html5Qrcode === 'undefined') {
-          showToast('扫描组件加载失败，请检查网络', 'err');
+          tapText.textContent = '扫描组件加载失败\n请检查网络后点击重试';
+          tapMask.classList.remove('hidden');
+          tip.textContent = '';
           return;
         }
         if (scanning) return;
-        scanMask.classList.remove('hidden');
+        tapMask.classList.add('hidden');
         scanning = true;
+        tip.textContent = '正在启动摄像头...';
+
         try {
           html5QrCode = new Html5Qrcode('qr-reader', { verbose: false });
         } catch (e) {
           scanning = false;
-          scanMask.classList.add('hidden');
-          showToast('扫描初始化失败', 'err');
+          tapText.textContent = '扫描初始化失败';
+          tapMask.classList.remove('hidden');
+          tip.textContent = '';
           return;
         }
+
         html5QrCode.start(
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.333334 },
           function (decodedText) {
-            // 扫到任意二维码，立即通过并跳转后续
-            stopScan();
-            scanMask.classList.add('hidden');
-            showToast('✓ 通行验证通过', 'ok');
-            var info = document.querySelector('.list-group');
-            if (info && info.scrollIntoView) {
-              info.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            // 扫到任意二维码，立即跳转信息页
+            jumpToInfo();
           },
           function (errorMessage) {
             // 每帧未识别，忽略
           }
         ).catch(function (err) {
-          scanning = false;
-          scanMask.classList.add('hidden');
-          var name = err && err.name;
-          var msg = '无法启动扫描，请检查摄像头权限';
-          if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
-            msg = '摄像头权限被拒绝，请在浏览器设置中允许后重试';
-          } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
-            msg = '未检测到摄像头设备';
-          } else if (name === 'NotReadableError') {
-            msg = '摄像头被其他程序占用，请关闭后重试';
-          } else if (name === 'NotSupportedError' || name === 'TypeError') {
-            msg = '当前环境不支持摄像头扫描（需 HTTPS 或 localhost）';
-          }
-          showToast(msg, 'err');
+          handleStartError(err);
         });
       }
 
-      scanBtn.addEventListener('click', startScan);
-      scanClose.addEventListener('click', closeScan);
-
-      // 交互式触摸防伪 (点击屏幕任意位置生成带姓名的水波纹)
-      function createRipple(e) {
-        var x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0].clientX);
-        var y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0].clientY);
-        if (x === undefined || y === undefined) return;
-        if (mask && !mask.classList.contains('hidden')) return; // 弹窗打开时不触发涟漪
-
-        var ripple = document.createElement('div');
-        ripple.className = 'touch-ripple';
-        ripple.innerHTML = '<span class="ripple-text">' + (currentName || '') + '</span>';
-
-        var size = 60;
-        ripple.style.width = size + 'px';
-        ripple.style.height = size + 'px';
-        ripple.style.left = (x - size / 2) + 'px';
-        ripple.style.top = (y - size / 2) + 'px';
-
-        document.body.appendChild(ripple);
-
-        setTimeout(function () {
-          ripple.remove();
-        }, 800);
-      }
-
-      document.addEventListener('mousedown', createRipple);
-      document.addEventListener('touchstart', createRipple, { passive: true });
-
-      // 基础防调试：仅用于普通浏览器操作拦截，不能替代服务器端访问控制。
-      document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-      document.addEventListener('selectstart', function (e) {
-        // 允许表单内选择文本
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) {
-          return;
-        }
-        e.preventDefault();
+      // 点击覆盖层重试（提供用户手势以满足 iOS 要求）
+      tapMask.addEventListener('click', function () {
+        startScan();
       });
+
+      // 自动启动（桌面端可直接启动；iOS 会失败并显示点击覆盖层）
+      window.addEventListener('load', function () {
+        setTimeout(startScan, 120);
+      });
+
+      // 基础防调试
+      document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      document.addEventListener('selectstart', function (e) { e.preventDefault(); });
       document.addEventListener('copy', function (e) { e.preventDefault(); });
-      document.addEventListener('keydown', function (e) {
-        var key = (e.key || '').toLowerCase();
-        if (
-          e.keyCode === 123 ||
-          (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
-          (e.ctrlKey && (key === 'u' || key === 's' || key === 'p'))
-        ) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      }, true);
-
-      function showDebugMask() {
-        if (document.getElementById('debug-mask')) return;
-        var mask = document.createElement('div');
-        mask.id = 'debug-mask';
-        mask.style.cssText = [
-          'position:fixed',
-          'inset:0',
-          'z-index:2147483647',
-          'display:flex',
-          'align-items:center',
-          'justify-content:center',
-          'background:#f2fff5',
-          'color:#34c759',
-          'font-size:16px',
-          'font-weight:600',
-          'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif'
-        ].join(';');
-        mask.textContent = '请使用正常浏览模式访问';
-        document.body.appendChild(mask);
-      }
-
-      function hideDebugMask() {
-        var mask = document.getElementById('debug-mask');
-        if (mask) mask.remove();
-      }
-
-      setInterval(function () {
-        var ae = document.activeElement;
-        var typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT' || ae.tagName === 'TEXTAREA');
-        if (typing) { hideDebugMask(); return; }
-        var widthGap = window.outerWidth - window.innerWidth;
-        var heightGap = window.outerHeight - window.innerHeight;
-        if (widthGap > 180 || heightGap > 180) {
-          showDebugMask();
-        } else {
-          hideDebugMask();
-        }
-      }, 800);
     })();
   </script>
 </body>
