@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>河南农业大学假期留校人员出入管理系统</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="河南农业大学假期留校人员出入管理系统">
+  <style>
+    :root {
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      --theme-card-bg: #ffffff;
+      --theme-card-border: rgba(0, 0, 0, 0.08);
+      --theme-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      --nav-bg: #1e293b;
+    }
+
+    /* 允许留校状态 - 浅绿色背景 */
+    body.status-allowed {
+      --status-page-bg: #f2fff5;
+      --status-primary: #34c759;
+      /* iOS 经典绿 */
+      --status-primary-bg: rgba(52, 199, 89, 0.12);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: var(--font-family);
+      background-color: var(--status-page-bg);
+      transition: background-color 0.3s ease;
+      /* 防偷：禁止长按选中、禁止系统默认的长按弹出菜单 */
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+      color: #000000;
+    }
+
+    /* === 顶部导航栏 (适配新版绿色字体 Logo) === */
+    .nav-bar {
+      background: #ffffff;
+      /* 纯白背景以凸显绿色 Logo */
+      width: 100%;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      /* 适配刘海屏 */
+      padding-top: calc(14px + env(safe-area-inset-top));
+    }
+
+    .henau-logo {
+      height: 36px;
+      margin-right: 12px;
+    }
+
+    .nav-title {
+      color: #333333;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      max-width: 500px;
+      padding: 20px 16px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      flex: 1;
+    }
+
+    /* === iOS 卡片风格 === */
+    .ios-card {
+      background: #ffffff;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    /* === 防伪动态时钟 === */
+    .time-container {
+      text-align: center;
+      padding: 16px 16px 20px;
+    }
+
+    .clock-label {
+      font-size: 12px;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .clock-time {
+      font-family: 'SF Pro Rounded', ui-rounded, 'Arial Rounded MT Bold', 'DIN Alternate', 'Trebuchet MS', sans-serif;
+      font-size: 64px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin-bottom: 6px;
+
+      /* 数字流动扫光特效 */
+      background: linear-gradient(110deg, #111111 30%, var(--status-primary) 50%, #111111 70%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: text-shine 3s linear infinite;
+    }
+
+    @keyframes text-shine {
+      to {
+        background-position: -200% center;
+      }
+    }
+
+    .clock-time .colon {
+      position: relative;
+      top: -4px;
+      -webkit-text-fill-color: var(--status-primary);
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.15;
+      }
+    }
+
+    .clock-date {
+      font-size: 15px;
+      color: #8e8e93;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--status-primary-bg);
+      padding: 5px 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--status-primary);
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--status-primary);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.5);
+        opacity: 0.4;
+      }
+    }
+
+    /* === 状态横幅 === */
+    .status-card {
+      display: flex;
+      align-items: center;
+      padding: 18px 20px;
+      gap: 16px;
+    }
+
+    .status-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--status-primary);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px var(--status-primary-bg);
+    }
+
+    .status-content {
+      flex: 1;
+    }
+
+    .status-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--status-primary);
+      margin-bottom: 2px;
+    }
+
+    .status-subtitle {
+      font-size: 13px;
+      color: #8e8e93;
+      line-height: 1.4;
+    }
+
+    /* === 分组列表 (人员信息、起止时间) === */
+    .section-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #6d6d72;
+      text-transform: uppercase;
+      margin: 0 0 6px 16px;
+    }
+
+    .list-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      position: relative;
+    }
+
+    /* iOS 分割线风格：仅从内容起始处开始 */
+    .list-row:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20px;
+      right: 0;
+      height: 0.5px;
+      background: #c6c6c8;
+    }
+
+    .list-label {
+      font-size: 16px;
+      color: #000000;
+      white-space: nowrap;
+    }
+
+    .list-value {
+      font-size: 16px;
+      color: #8e8e93;
+      text-align: right;
+      word-break: break-word;
+      padding-left: 16px;
+    }
+
+    .list-value.accent {
+      color: var(--status-primary);
+      font-weight: 500;
+    }
+
+    /* === Footer === */
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #8e8e93;
+      margin-top: 10px;
+    }
+
+    /* === 动态防伪机制 === */
+    .watermark-overlay {
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='180'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-25 120 90)' font-size='15' fill='black' opacity='0.06' font-weight='600' font-family='system-ui,sans-serif'%3E刘泽和 2304831074%3C/text%3E%3C/svg%3E");
+      background-repeat: repeat;
+      animation: watermark-scroll 15s linear infinite;
+    }
+
+    @keyframes watermark-scroll {
+      0% {
+        background-position: 0 0;
+      }
+
+      100% {
+        background-position: -240px -180px;
+      }
+    }
+
+    /* 时间卡片动态波浪（流体）特效 */
+    .time-container {
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .time-container::before,
+    .time-container::after {
+      content: '';
+      position: absolute;
+      width: 800px;
+      height: 800px;
+      bottom: -730px;
+      left: 50%;
+      background: var(--status-primary);
+      opacity: 0.05;
+      border-radius: 43%;
+      animation: wave-flow 8s linear infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .time-container::after {
+      border-radius: 40%;
+      opacity: 0.08;
+      animation: wave-flow 12s linear infinite;
+    }
+
+    @keyframes wave-flow {
+      0% {
+        transform: translateX(-50%) rotate(0deg);
+      }
+
+      100% {
+        transform: translateX(-50%) rotate(360deg);
+      }
+    }
+
+    /* 毫秒数字样式 */
+    .clock-time .ms-dot {
+      -webkit-text-fill-color: var(--status-primary);
+      margin-left: 2px;
+      font-size: 32px;
+    }
+
+    .clock-time .ms-text {
+      font-size: 32px;
+      -webkit-text-fill-color: var(--status-primary);
+      font-weight: 700;
+    }
+
+    /* === 入场动画 === */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .nav-bar {
+      animation: fadeUp 0.3s ease both;
+    }
+
+    /* === 交互式触摸涟漪防伪 === */
+    .touch-ripple {
+      position: fixed;
+      border: 2px solid var(--status-primary);
+      border-radius: 50%;
+      transform: scale(0.2);
+      animation: touch-ripple-anim 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      pointer-events: none;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .touch-ripple .ripple-text {
+      color: var(--status-primary);
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      opacity: 0.9;
+    }
+
+    @keyframes touch-ripple-anim {
+      0% {
+        transform: scale(0.2);
+        opacity: 1;
+        border-width: 4px;
+      }
+
+      100% {
+        transform: scale(3.5);
+        opacity: 0;
+        border-width: 0px;
+      }
+    }
+
+    .page-wrapper>div:nth-child(1) {
+      animation: fadeUp 0.4s ease 0.05s both;
+    }
+
+    .page-wrapper>div:nth-child(2) {
+      animation: fadeUp 0.4s ease 0.10s both;
+    }
+
+    .page-wrapper>div:nth-child(3) {
+      animation: fadeUp 0.4s ease 0.15s both;
+    }
+
+    .page-wrapper>div:nth-child(4) {
+      animation: fadeUp 0.4s ease 0.20s both;
+    }
+
+    .page-wrapper>div:nth-child(5) {
+      animation: fadeUp 0.4s ease 0.25s both;
+    }
+
+    .page-wrapper>div:nth-child(6) {
+      animation: fadeUp 0.4s ease 0.30s both;
+    }
+  </style>
+</head>
+
+<body class="status-allowed">
+  <!-- 全屏动态防伪水印 -->
+  <div class="watermark-overlay"></div>
+
+  <!-- iOS 风格深色导航栏，保证白色 Logo 绝对清晰 -->
+  <div class="nav-bar">
+    <img class="henau-logo" src="./images/henau_top2.png" alt="河南农业大学">
+    <div class="nav-title">假期留校人员出入管理系统</div>
+  </div>
+
+  <div class="page-wrapper">
+    <!-- 防伪动态时钟 -->
+    <div class="ios-card time-container">
+      <!-- <div class="clock-label">实时时间 · 动态防伪</div> -->
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        <span>LIVE · 请核对时间真实性</span>
+      </div>
+      <div class="clock-time">
+        <span id="clk-h">--</span><span class="colon">:</span><span id="clk-m">--</span><span
+          class="colon">:</span><span id="clk-s">--</span><span class="ms-dot">.</span><span id="clk-ms"
+          class="ms-text">--</span>
+      </div>
+      <div class="clock-date" id="clk-date">加载中...</div>
+
+    </div>
+
+    <!-- 留校状态横幅 -->
+    <div class="ios-card status-card">
+      <div class="status-icon">
+                <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2.5" fill="none"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+              </div>
+      <div class="status-content">
+        <div class="status-title">允许留校</div>
+        <div class="status-subtitle">
+          该同学已获批留校资格，当前处于有效期内        </div>
+      </div>
+    </div>
+
+    <!-- 人员信息 -->
+    <div class="section-title">人员信息</div>
+    <div class="ios-card list-group">
+      <div class="list-row">
+        <span class="list-label">校区</span>
+        <span class="list-value">桃李园校区</span>
+      </div>
+      <div class="list-row">
+        <span class="list-label">学院</span>
+        <span class="list-value">机电工程学院</span>
+      </div>
+      <div class="list-row">
+        <span class="list-label">姓名</span>
+        <span class="list-value">刘泽和</span>
+      </div>
+      <div class="list-row">
+        <span class="list-label">类别</span>
+        <span class="list-value">本科生</span>
+      </div>
+      <div class="list-row">
+        <span class="list-label">宿舍</span>
+        <span class="list-value">桃李园学生公寓 桃3号楼 212室</span>
+      </div>
+      <div class="list-row">
+        <span class="list-label">学号</span>
+        <span class="list-value accent">2304831074</span>
+      </div>
+    </div>
+
+    <!-- 留校起止时间 -->
+    <div class="section-title">留校起止时间</div>
+    <div class="ios-card list-group">
+      <div class="list-row">
+        <span class="list-label">开始时间</span>
+        <span class="list-value">2026-07-06</span>
+      </div>
+      <div class="list-row">
+        <span class="list-label">结束时间</span>
+        <span class="list-value">2026-07-13</span>
+      </div>
+    </div>
+
+    <div class="footer">技术支持：河南农业大学IT工作室</div>
+  </div>
+
+  <script>
+    (function () {
+      var WEEK = ['日', '一', '二', '三', '四', '五', '六'];
+      var H = document.getElementById('clk-h');
+      var M = document.getElementById('clk-m');
+      var S = document.getElementById('clk-s');
+      var MS = document.getElementById('clk-ms');
+      var D = document.getElementById('clk-date');
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function tick() {
+        var now = new Date();
+        H.textContent = pad(now.getHours());
+        M.textContent = pad(now.getMinutes());
+        S.textContent = pad(now.getSeconds());
+
+        // 毫秒防伪 (更新频率加快，显示两位)
+        var msStr = Math.floor(now.getMilliseconds() / 10).toString();
+        if (msStr.length < 2) msStr = '0' + msStr;
+        MS.textContent = msStr;
+
+        D.textContent = now.getFullYear() + ' 年 ' + (now.getMonth() + 1) + ' 月 ' +
+          now.getDate() + ' 日  星期' + WEEK[now.getDay()];
+      }
+
+      tick();
+      setInterval(tick, 47); // 约每秒 21 次的高频刷新，提升防伪动画平滑度
+
+      // 交互式触摸防伪 (点击屏幕任意位置生成带姓名的水波纹)
+      function createRipple(e) {
+        var x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0].clientX);
+        var y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0].clientY);
+        if (x === undefined || y === undefined) return;
+
+        var ripple = document.createElement('div');
+        ripple.className = 'touch-ripple';
+        ripple.innerHTML = '<span class="ripple-text">刘泽和</span>';
+
+        var size = 60;
+        ripple.style.width = size + 'px';
+        ripple.style.height = size + 'px';
+        ripple.style.left = (x - size / 2) + 'px';
+        ripple.style.top = (y - size / 2) + 'px';
+
+        document.body.appendChild(ripple);
+
+        setTimeout(function () {
+          ripple.remove();
+        }, 800);
+      }
+
+      document.addEventListener('mousedown', createRipple);
+      document.addEventListener('touchstart', createRipple, { passive: true });
+
+      // 基础防调试：仅用于普通浏览器操作拦截，不能替代服务器端访问控制。
+      document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      document.addEventListener('selectstart', function (e) { e.preventDefault(); });
+      document.addEventListener('copy', function (e) { e.preventDefault(); });
+      document.addEventListener('keydown', function (e) {
+        var key = (e.key || '').toLowerCase();
+        if (
+          e.keyCode === 123 ||
+          (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
+          (e.ctrlKey && (key === 'u' || key === 's' || key === 'p'))
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+
+      function showDebugMask() {
+        if (document.getElementById('debug-mask')) return;
+        var mask = document.createElement('div');
+        mask.id = 'debug-mask';
+        mask.style.cssText = [
+          'position:fixed',
+          'inset:0',
+          'z-index:2147483647',
+          'display:flex',
+          'align-items:center',
+          'justify-content:center',
+          'background:#f2fff5',
+          'color:#34c759',
+          'font-size:16px',
+          'font-weight:600',
+          'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif'
+        ].join(';');
+        mask.textContent = '请使用正常浏览模式访问';
+        document.body.appendChild(mask);
+      }
+
+      function hideDebugMask() {
+        var mask = document.getElementById('debug-mask');
+        if (mask) mask.remove();
+      }
+
+      setInterval(function () {
+        var widthGap = window.outerWidth - window.innerWidth;
+        var heightGap = window.outerHeight - window.innerHeight;
+        if (widthGap > 180 || heightGap > 180) {
+          showDebugMask();
+        } else {
+          hideDebugMask();
+        }
+      }, 800);
+    })();
+  </script>
+</body>
+
+</html>
