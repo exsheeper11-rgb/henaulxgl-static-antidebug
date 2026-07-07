@@ -3,12 +3,13 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>扫描通行 - 河南农业大学假期留校人员出入管理系统</title>
+  <title>扫一扫 - 河南农业大学假期留校人员出入管理系统</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="扫描宿舍通行二维码进入假期留校人员出入管理系统">
+  <meta name="theme-color" content="#000000">
   <style>
     :root {
-      --status-primary: #34c759;
+      --scan-color: #34c759;
       --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
     }
 
@@ -24,113 +25,267 @@
     html,
     body {
       height: 100%;
+      width: 100%;
       font-family: var(--font-family);
-      background: #0a0a0a;
+      background: #000000;
       color: #ffffff;
       overflow: hidden;
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
+      overscroll-behavior: none;
     }
 
     body {
+      position: fixed;
+      inset: 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-      position: relative;
     }
 
-    .logo-wrap {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .logo {
-      height: 40px;
-      margin-bottom: 12px;
-    }
-
-    .title {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.6);
-      margin-top: 6px;
-    }
-
-    .scan-stage {
-      position: relative;
-      width: 80vw;
-      max-width: 360px;
-      aspect-ratio: 1 / 1;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 0 0 2px rgba(52, 199, 89, 0.5), 0 12px 40px rgba(0, 0, 0, 0.6);
-    }
-
+    /* === 摄像头预览容器 === */
     #qr-reader {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
+      border: none !important;
     }
 
     #qr-reader video {
-      width: 100%;
-      height: 100%;
+      width: 100% !important;
+      height: 100% !important;
       object-fit: cover;
       display: block;
     }
 
-    /* 扫描框装饰角 */
-    .scan-stage::before,
-    .scan-stage::after {
-      content: '';
-      position: absolute;
-      width: 28px;
-      height: 28px;
-      border: 3px solid var(--status-primary);
-      pointer-events: none;
-      z-index: 5;
+    /* 隐藏 html5-qrcode 自带的 UI 元素 */
+    #qr-reader__dashboard,
+    #qr-reader__dashboard_section_csr,
+    #qr-reader__dashboard_section_swap,
+    #qr-reader__header_message,
+    #qr-reader__scan_region img {
+      display: none !important;
     }
 
-    .scan-stage::before {
-      top: 12px;
-      left: 12px;
+    #qr-reader__scan_region {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    #qr-reader__scan_region > div:first-child {
+      opacity: 0 !important;
+      display: none !important;
+    }
+
+    /* === 扫描遮罩层 === */
+    .scan-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .scan-overlay svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* === 扫描框区域 === */
+    .scan-box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70vw;
+      max-width: 280px;
+      aspect-ratio: 1 / 1;
+      z-index: 11;
+      pointer-events: none;
+    }
+
+    /* 四个角标 */
+    .scan-corner {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #ffffff;
+    }
+
+    .scan-corner.tl {
+      top: 0;
+      left: 0;
       border-right: none;
       border-bottom: none;
-      border-top-left-radius: 6px;
+      border-top-left-radius: 4px;
     }
 
-    .scan-stage::after {
-      bottom: 12px;
-      right: 12px;
+    .scan-corner.tr {
+      top: 0;
+      right: 0;
+      border-left: none;
+      border-bottom: none;
+      border-top-right-radius: 4px;
+    }
+
+    .scan-corner.bl {
+      bottom: 0;
+      left: 0;
+      border-right: none;
+      border-top: none;
+      border-bottom-left-radius: 4px;
+    }
+
+    .scan-corner.br {
+      bottom: 0;
+      right: 0;
       border-left: none;
       border-top: none;
-      border-bottom-right-radius: 6px;
+      border-bottom-right-radius: 4px;
     }
 
-    .tip {
-      margin-top: 22px;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.78);
-      text-align: center;
-      min-height: 18px;
+    /* 动态扫描线 */
+    .scan-line {
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      top: 0;
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--scan-color), transparent);
+      box-shadow: 0 0 12px var(--scan-color), 0 0 6px var(--scan-color);
+      animation: scan-line-move 2.4s ease-in-out infinite;
     }
 
-    /* 手势/重试覆盖层（iOS 需用户手势触发摄像头） */
-    .tap-mask {
-      position: fixed;
-      inset: 0;
-      background: rgba(10, 10, 10, 0.97);
+    @keyframes scan-line-move {
+      0% {
+        top: 4px;
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      45% {
+        top: calc(100% - 4px);
+        opacity: 1;
+      }
+
+      55% {
+        top: calc(100% - 4px);
+        opacity: 0;
+      }
+
+      65% {
+        top: 4px;
+        opacity: 0;
+      }
+
+      75% {
+        opacity: 1;
+      }
+
+      100% {
+        top: 4px;
+        opacity: 1;
+      }
+    }
+
+    /* === 顶部标题栏 === */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: calc(12px + env(safe-area-inset-top)) 20px 16px;
+      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 50;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent);
+    }
+
+    .top-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+
+    /* === 底部区域 === */
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      padding-bottom: env(safe-area-inset-bottom);
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.55) 60%, transparent 100%);
+      padding-top: 40px;
+    }
+
+    .bottom-tip {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 28px;
+      letter-spacing: 0.5px;
+    }
+
+    .bottom-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px 24px;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      -webkit-user-select: none;
+      user-select: none;
+      opacity: 0.92;
+      transition: opacity 0.2s;
+    }
+
+    .action-btn:active {
+      opacity: 0.6;
+    }
+
+    .action-btn svg {
+      width: 28px;
+      height: 28px;
+      stroke: #ffffff;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* 中间提示文字（占位对齐） */
+    .action-mid {
+      flex: 0 0 auto;
+    }
+
+    /* === 启动提示遮罩（iOS 需用户手势） === */
+    .tap-mask {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      background: rgba(0, 0, 0, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
     }
 
@@ -138,48 +293,57 @@
       display: none;
     }
 
-    .tap-card {
-      text-align: center;
-      padding: 0 30px;
+    .tap-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(52, 199, 89, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      animation: tap-pulse 2s ease-in-out infinite;
     }
 
-    .tap-icon {
-      font-size: 56px;
-      margin-bottom: 16px;
-      line-height: 1;
+    @keyframes tap-pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.5);
+      }
+
+      50% {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 16px rgba(52, 199, 89, 0);
+      }
+    }
+
+    .tap-icon svg {
+      width: 36px;
+      height: 36px;
+      stroke: var(--scan-color);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .tap-text {
       font-size: 15px;
       color: #ffffff;
       font-weight: 500;
-      max-width: 300px;
+      text-align: center;
       line-height: 1.6;
+      max-width: 280px;
       white-space: pre-line;
-      margin: 0 auto;
     }
 
-    .tap-btn {
-      display: inline-block;
-      margin-top: 22px;
-      padding: 13px 36px;
-      background: var(--status-primary);
-      color: #ffffff;
-      border-radius: 999px;
-      font-size: 15px;
-      font-weight: 700;
-      box-shadow: 0 6px 18px rgba(52, 199, 89, 0.4);
-    }
-
-    .tap-btn:active {
-      transform: scale(0.96);
-    }
-
-    /* Toast */
+    /* === Toast === */
     .toast {
-      position: fixed;
+      position: absolute;
       left: 50%;
-      bottom: calc(40px + env(safe-area-inset-bottom));
+      bottom: 30%;
       transform: translate(-50%, 20px);
       background: rgba(0, 0, 0, 0.88);
       color: #ffffff;
@@ -187,11 +351,11 @@
       border-radius: 10px;
       font-size: 14px;
       font-weight: 500;
-      z-index: 100;
+      z-index: 40;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease, transform 0.25s ease;
-      max-width: 86vw;
+      max-width: 80vw;
       text-align: center;
       white-space: pre-line;
     }
@@ -212,37 +376,73 @@
 </head>
 
 <body>
-  <div class="logo-wrap">
-    <img class="logo" src="./images/henau_top2.png" alt="河南农业大学">
-    <div class="title">假期留校人员出入管理系统</div>
-    <div class="subtitle">请扫描宿舍通行二维码</div>
+  <!-- 摄像头预览容器（html5-qrcode 注入 video） -->
+  <div id="qr-reader"></div>
+
+  <!-- 扫描遮罩（四周半透明黑，中间透明方框） -->
+  <div class="scan-overlay">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path d="M0,0 L100,0 L100,100 L0,100 Z M28,30 L72,30 L72,70 L28,70 Z" fill="rgba(0,0,0,0.5)" fill-rule="evenodd"></path>
+    </svg>
   </div>
 
-  <div class="scan-stage">
-    <div id="qr-reader"></div>
+  <!-- 扫描框（角标 + 扫描线） -->
+  <div class="scan-box">
+    <div class="scan-corner tl"></div>
+    <div class="scan-corner tr"></div>
+    <div class="scan-corner bl"></div>
+    <div class="scan-corner br"></div>
+    <div class="scan-line"></div>
   </div>
 
-  <div class="tip" id="tip">正在启动摄像头...</div>
+  <!-- 顶部标题栏 -->
+  <div class="top-bar">
+    <div class="top-title">扫一扫</div>
+  </div>
 
-  <!-- 手势/重试覆盖层 -->
-  <div class="tap-mask hidden" id="tap-mask">
-    <div class="tap-card">
-      <div class="tap-icon">📷</div>
-      <div class="tap-text" id="tap-text">点击开始扫描</div>
-      <div class="tap-btn">开始扫描</div>
+  <!-- 底部操作栏 -->
+  <div class="bottom-bar">
+    <div class="bottom-tip">识别二维码 / 花草 / 物品等</div>
+    <div class="bottom-actions">
+      <button class="action-btn" id="btn-myqr" type="button">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3"></path><path d="M21 21h-4"></path><path d="M17 21v-1"></path></svg>
+        <span>我的二维码</span>
+      </button>
+      <div class="action-mid"></div>
+      <button class="action-btn" id="btn-album" type="button">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+        <span>相册</span>
+      </button>
     </div>
   </div>
 
-  <!-- Toast 提示 -->
+  <!-- 启动遮罩（iOS 需用户手势触发摄像头） -->
+  <div class="tap-mask hidden" id="tap-mask">
+    <div class="tap-icon">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+    </div>
+    <div class="tap-text" id="tap-text">点击屏幕开始扫描</div>
+  </div>
+
+  <!-- Toast -->
   <div class="toast" id="toast"></div>
+
+  <!-- 相册隐藏 input -->
+  <input type="file" id="album-input" accept="image/*" style="display:none">
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     (function () {
-      var tip = document.getElementById('tip');
+      // ========== 可配置项 ==========
+      var JUMP_URL = 'info.html';          // 扫到二维码后跳转页面
+      var JUMP_DELAY = 700;                // 跳转延迟（ms），用于显示提示
+      var STORAGE_KEY = 'henau_pass_data_v1'; // 与信息页一致的 localStorage key
+      // =============================
+
+      var tip = document.getElementById('tap-text');
       var tapMask = document.getElementById('tap-mask');
-      var tapText = document.getElementById('tap-text');
       var toastEl = document.getElementById('toast');
+      var albumInput = document.getElementById('album-input');
       var html5QrCode = null;
       var scanning = false;
       var jumped = false;
@@ -250,7 +450,7 @@
       function showToast(text, type) {
         toastEl.textContent = text;
         toastEl.className = 'toast ' + (type === 'err' ? 'err' : 'ok');
-        void toastEl.offsetWidth; // 强制重排以重启动画
+        void toastEl.offsetWidth;
         toastEl.classList.add('show');
         clearTimeout(toastEl._t);
         toastEl._t = setTimeout(function () {
@@ -262,12 +462,11 @@
         if (jumped) return;
         jumped = true;
         stopScan();
-        showToast('✓ 通行验证通过', 'ok');
-        tip.textContent = '正在跳转...';
+        showToast('✓ 扫描成功', 'ok');
         setTimeout(function () {
           try { sessionStorage.setItem('henau_scan_passed', '1'); } catch (e) {}
-          window.location.href = 'info.html';
-        }, 700);
+          window.location.href = JUMP_URL;
+        }, JUMP_DELAY);
       }
 
       function stopScan() {
@@ -282,7 +481,7 @@
       function handleStartError(err) {
         scanning = false;
         var name = err && err.name;
-        var msg = '点击开始扫描';
+        var msg = '点击屏幕开始扫描';
         if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
           msg = '摄像头权限被拒绝\n请在浏览器设置中允许后点击重试';
         } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
@@ -292,38 +491,33 @@
         } else if (name === 'NotSupportedError' || name === 'TypeError') {
           msg = '当前环境不支持摄像头扫描\n需在 HTTPS 环境下访问';
         }
-        tapText.textContent = msg;
+        tip.textContent = msg;
         tapMask.classList.remove('hidden');
-        tip.textContent = '';
       }
 
       function startScan() {
         if (typeof Html5Qrcode === 'undefined') {
-          tapText.textContent = '扫描组件加载失败\n请检查网络后点击重试';
+          tip.textContent = '扫描组件加载失败\n请检查网络后点击重试';
           tapMask.classList.remove('hidden');
-          tip.textContent = '';
           return;
         }
         if (scanning) return;
         tapMask.classList.add('hidden');
         scanning = true;
-        tip.textContent = '正在启动摄像头...';
 
         try {
           html5QrCode = new Html5Qrcode('qr-reader', { verbose: false });
         } catch (e) {
           scanning = false;
-          tapText.textContent = '扫描初始化失败';
+          tip.textContent = '扫描初始化失败';
           tapMask.classList.remove('hidden');
-          tip.textContent = '';
           return;
         }
 
         html5QrCode.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.333334 },
+          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.333334, disableFlip: false },
           function (decodedText) {
-            // 扫到任意二维码，立即跳转信息页
             jumpToInfo();
           },
           function (errorMessage) {
@@ -334,15 +528,110 @@
         });
       }
 
-      // 点击覆盖层重试（提供用户手势以满足 iOS 要求）
+      // 点击启动遮罩（提供用户手势以满足 iOS 要求）
       tapMask.addEventListener('click', function () {
         startScan();
       });
 
-      // 自动启动（桌面端可直接启动；iOS 会失败并显示点击覆盖层）
+      // 自动启动（桌面端可直接启动；iOS 会失败显示遮罩）
       window.addEventListener('load', function () {
         setTimeout(startScan, 120);
       });
+
+      // === 相册识别 ===
+      document.getElementById('btn-album').addEventListener('click', function () {
+        albumInput.click();
+      });
+
+      albumInput.addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        // 用 html5-qrcode 扫描本地图片
+        if (typeof Html5Qrcode === 'undefined') {
+          showToast('扫描组件未加载', 'err');
+          return;
+        }
+        Html5Qrcode.scanFile(file, true)
+          .then(function (decodedText) {
+            showToast('✓ 识别成功', 'ok');
+            setTimeout(function () {
+              try { sessionStorage.setItem('henau_scan_passed', '1'); } catch (e) {}
+              window.location.href = JUMP_URL;
+            }, 600);
+          })
+          .catch(function (err) {
+            showToast('未识别到二维码\n请选择包含二维码的图片', 'err');
+          });
+        // 清空 input 允许重复选择同一文件
+        albumInput.value = '';
+      });
+
+      // === 我的二维码 ===
+      document.getElementById('btn-myqr').addEventListener('click', function () {
+        var data = null;
+        try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) {}
+        if (!data || !data.name || !data.studentId) {
+          showToast('暂无个人信息\n请先填写后再生成二维码', 'err');
+          return;
+        }
+        var text = data.name + ' ' + data.studentId;
+        showMyQr(text, data);
+      });
+
+      // 我的二维码弹窗
+      var qrModal = null;
+      function showMyQr(text, data) {
+        closeMyQr();
+        qrModal = document.createElement('div');
+        qrModal.style.cssText = [
+          'position:absolute', 'inset:0', 'z-index:50',
+          'background:rgba(0,0,0,0.9)',
+          'display:flex', 'flex-direction:column',
+          'align-items:center', 'justify-content:center',
+          'padding:40px'
+        ].join(';');
+
+        var card = document.createElement('div');
+        card.style.cssText = [
+          'background:#fff', 'border-radius:16px', 'padding:28px 24px',
+          'text-align:center', 'max-width:300px', 'width:100%'
+        ].join(';');
+
+        var title = document.createElement('div');
+        title.textContent = '我的通行二维码';
+        title.style.cssText = 'font-size:16px;font-weight:600;color:#000;margin-bottom:6px;';
+
+        var sub = document.createElement('div');
+        sub.textContent = (data.name || '') + ' · ' + (data.studentId || '');
+        sub.style.cssText = 'font-size:13px;color:#8e8e93;margin-bottom:18px;';
+
+        // 用 Google Chart API 生成二维码（CDN 免依赖）
+        var img = document.createElement('img');
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=' + encodeURIComponent(text);
+        img.alt = '二维码';
+        img.style.cssText = 'width:220px;height:220px;display:block;margin:0 auto 18px;';
+
+        var closeBtn = document.createElement('button');
+        closeBtn.textContent = '关闭';
+        closeBtn.style.cssText = 'background:#f2f2f7;color:#007aff;border:none;border-radius:9px;padding:11px 0;width:100%;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;';
+        closeBtn.addEventListener('click', closeMyQr);
+
+        card.appendChild(title);
+        card.appendChild(sub);
+        card.appendChild(img);
+        card.appendChild(closeBtn);
+        qrModal.appendChild(card);
+
+        qrModal.addEventListener('click', function (e) {
+          if (e.target === qrModal) closeMyQr();
+        });
+
+        document.body.appendChild(qrModal);
+      }
+
+      function closeMyQr() {
+        if (qrModal) { qrModal.remove(); qrModal = null; }
+      }
 
       // 基础防调试
       document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
