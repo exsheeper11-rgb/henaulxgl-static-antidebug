@@ -1000,6 +1000,9 @@
       }
 
       setInterval(function () {
+        var ae = document.activeElement;
+        var typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT' || ae.tagName === 'TEXTAREA');
+        if (typing) { hideDebugMask(); return; }
         var widthGap = window.outerWidth - window.innerWidth;
         var heightGap = window.outerHeight - window.innerHeight;
         if (widthGap > 180 || heightGap > 180) {
