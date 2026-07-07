@@ -285,12 +285,31 @@
       font-weight: 500;
     }
 
+    .list-value.placeholder {
+      color: #c7c7cc;
+      font-style: italic;
+    }
+
     /* === Footer === */
     .footer {
       text-align: center;
       font-size: 12px;
       color: #8e8e93;
       margin-top: 10px;
+    }
+
+    .edit-link {
+      display: inline-block;
+      margin-top: 6px;
+      color: var(--status-primary);
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .edit-link:active {
+      opacity: 0.6;
     }
 
     /* === 动态防伪机制 === */
@@ -302,7 +321,6 @@
       height: 200%;
       pointer-events: none;
       z-index: 9999;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='180'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-25 120 90)' font-size='15' fill='black' opacity='0.06' font-weight='600' font-family='system-ui,sans-serif'%3E杜阳佟 2521821538%3C/text%3E%3C/svg%3E");
       background-repeat: repeat;
       animation: watermark-scroll 15s linear infinite;
     }
@@ -445,6 +463,155 @@
     .page-wrapper>div:nth-child(6) {
       animation: fadeUp 0.4s ease 0.30s both;
     }
+
+    /* === 信息录入弹窗 === */
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      padding: 20px;
+      opacity: 0;
+      animation: modal-in 0.25s ease forwards;
+    }
+
+    .modal-mask.hidden {
+      display: none;
+    }
+
+    @keyframes modal-in {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 380px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      transform: scale(0.92);
+      animation: modal-scale 0.25s ease forwards;
+    }
+
+    @keyframes modal-scale {
+      to {
+        transform: scale(1);
+      }
+    }
+
+    .modal-head {
+      padding: 20px 16px 8px;
+      text-align: center;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #000000;
+    }
+
+    .modal-desc {
+      font-size: 12px;
+      color: #8e8e93;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .modal-body {
+      padding: 12px 16px 0;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      color: #6d6d72;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .field-input,
+    .field-select {
+      width: 100%;
+      padding: 11px 12px;
+      font-size: 15px;
+      font-family: inherit;
+      border: 1px solid #e5e5ea;
+      border-radius: 8px;
+      background: #f9f9f9;
+      color: #000000;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .field-input:focus,
+    .field-select:focus {
+      border-color: var(--status-primary);
+      background: #ffffff;
+    }
+
+    .field-input::placeholder {
+      color: #c7c7cc;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .field-row .field {
+      flex: 1;
+    }
+
+    .modal-foot {
+      display: flex;
+      gap: 10px;
+      padding: 16px 16px 18px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 9px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .btn:active {
+      opacity: 0.7;
+    }
+
+    .btn-primary {
+      background: var(--status-primary);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background: #f2f2f7;
+      color: #007aff;
+    }
   </style>
 </head>
 
@@ -478,15 +645,16 @@
     <!-- 留校状态横幅 -->
     <div class="ios-card status-card">
       <div class="status-icon">
-                <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2.5" fill="none"
+        <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2.5" fill="none"
           stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
-              </div>
+      </div>
       <div class="status-content">
         <div class="status-title">允许留校</div>
         <div class="status-subtitle">
-          该同学已获批留校资格，当前处于有效期内        </div>
+          该同学已获批留校资格，当前处于有效期内
+        </div>
       </div>
     </div>
 
@@ -495,27 +663,27 @@
     <div class="ios-card list-group">
       <div class="list-row">
         <span class="list-label">校区</span>
-        <span class="list-value">龙子湖校区</span>
+        <span class="list-value placeholder" id="f-campus">待填写</span>
       </div>
       <div class="list-row">
         <span class="list-label">学院</span>
-        <span class="list-value">人工智能学院</span>
+        <span class="list-value placeholder" id="f-college">待填写</span>
       </div>
       <div class="list-row">
         <span class="list-label">姓名</span>
-        <span class="list-value">杜阳佟</span>
+        <span class="list-value placeholder" id="f-name">待填写</span>
       </div>
       <div class="list-row">
         <span class="list-label">类别</span>
-        <span class="list-value">本科生</span>
+        <span class="list-value placeholder" id="f-category">待填写</span>
       </div>
       <div class="list-row">
         <span class="list-label">宿舍</span>
-        <span class="list-value">兰亭园628</span>
+        <span class="list-value placeholder" id="f-dorm">待填写</span>
       </div>
       <div class="list-row">
         <span class="list-label">学号</span>
-        <span class="list-value">2521821538</span>
+        <span class="list-value placeholder" id="f-sid">待填写</span>
       </div>
     </div>
 
@@ -524,15 +692,74 @@
     <div class="ios-card list-group">
       <div class="list-row">
         <span class="list-label">开始时间</span>
-        <span class="list-value">2026-07-06</span>
+        <span class="list-value placeholder" id="f-start">待填写</span>
       </div>
       <div class="list-row">
         <span class="list-label">结束时间</span>
-        <span class="list-value">2026-08-10</span>
+        <span class="list-value placeholder" id="f-end">待填写</span>
       </div>
     </div>
 
     <div class="footer">技术支持：河南农业大学IT工作室</div>
+    <div class="footer"><span id="edit-btn" class="edit-link">修改个人信息</span></div>
+  </div>
+
+  <!-- 信息录入弹窗 -->
+  <div class="modal-mask hidden" id="modal-mask">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-title">请填写留校信息</div>
+        <div class="modal-desc">信息将保存在本设备浏览器中，下次访问无需重复填写。</div>
+      </div>
+      <form class="modal-body" id="info-form" autocomplete="off">
+        <div class="field">
+          <label class="field-label" for="if-name">姓名</label>
+          <input class="field-input" id="if-name" name="name" type="text" placeholder="杜阳佟" required>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="if-sid">学号</label>
+            <input class="field-input" id="if-sid" name="studentId" type="text" inputmode="numeric" placeholder="2521821538" required>
+          </div>
+          <div class="field">
+            <label class="field-label" for="if-category">类别</label>
+            <select class="field-select" id="if-category" name="category">
+              <option value="本科生">本科生</option>
+              <option value="研究生">研究生</option>
+              <option value="博士生">博士生</option>
+              <option value="教师">教师</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="if-college">学院</label>
+          <input class="field-input" id="if-college" name="college" type="text" placeholder="人工智能学院" required>
+        </div>
+        <div class="field">
+          <label class="field-label" for="if-campus">校区</label>
+          <input class="field-input" id="if-campus" name="campus" type="text" placeholder="龙子湖校区" required>
+        </div>
+        <div class="field">
+          <label class="field-label" for="if-dorm">宿舍</label>
+          <input class="field-input" id="if-dorm" name="dorm" type="text" placeholder="兰亭园628" required>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="if-start">开始日期</label>
+            <input class="field-input" id="if-start" name="startDate" type="date" required>
+          </div>
+          <div class="field">
+            <label class="field-label" for="if-end">结束日期</label>
+            <input class="field-input" id="if-end" name="endDate" type="date" required>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-secondary" id="modal-cancel">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -564,15 +791,149 @@
       tick();
       setInterval(tick, 47); // 约每秒 21 次的高频刷新，提升防伪动画平滑度
 
+      // === 自定义信息持久化 ===
+      var STORAGE_KEY = 'henau_pass_data_v1';
+      var FIELDS = ['campus', 'college', 'name', 'category', 'dorm', 'studentId', 'startDate', 'endDate'];
+      var FIELD_IDS = {
+        campus: 'f-campus',
+        college: 'f-college',
+        name: 'f-name',
+        category: 'f-category',
+        dorm: 'f-dorm',
+        studentId: 'f-sid',
+        startDate: 'f-start',
+        endDate: 'f-end'
+      };
+      var currentName = '';
+
+      function getData() {
+        try {
+          var d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          return d && d.name ? d : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function saveData(d) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+        } catch (e) {
+          // 容错：隐私模式下保存失败不影响当次渲染
+        }
+      }
+
+      function setWatermark(text) {
+        var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='180'>" +
+          "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' " +
+          "transform='rotate(-25 120 90)' font-size='15' fill='black' opacity='0.06' " +
+          "font-weight='600' font-family='system-ui,sans-serif'>" + text + "</text></svg>";
+        var el = document.querySelector('.watermark-overlay');
+        if (el) {
+          el.style.backgroundImage = "url(\"data:image/svg+xml," + encodeURIComponent(svg) + "\")";
+        }
+      }
+
+      function render(d) {
+        FIELDS.forEach(function (k) {
+          var el = document.getElementById(FIELD_IDS[k]);
+          if (el) {
+            el.textContent = d[k] != null && d[k] !== '' ? d[k] : '待填写';
+            if (d[k]) {
+              el.classList.remove('placeholder');
+            } else {
+              el.classList.add('placeholder');
+            }
+          }
+        });
+        currentName = d.name || '';
+        setWatermark((d.name || '') + ' ' + (d.studentId || ''));
+      }
+
+      function fillPlaceholder() {
+        FIELDS.forEach(function (k) {
+          var el = document.getElementById(FIELD_IDS[k]);
+          if (el) {
+            el.textContent = '待填写';
+            el.classList.add('placeholder');
+          }
+        });
+        setWatermark('待填写');
+        currentName = '';
+      }
+
+      // === 弹窗控制 ===
+      var mask = document.getElementById('modal-mask');
+      var form = document.getElementById('info-form');
+      var cancelBtn = document.getElementById('modal-cancel');
+      var titleEl = document.getElementById('modal-title');
+
+      function openModal(pre) {
+        FIELDS.forEach(function (k) {
+          var input = form.elements[k];
+          if (!input) return;
+          if (pre && pre[k] != null) {
+            input.value = pre[k];
+          } else {
+            input.value = '';
+          }
+        });
+        // 首次录入（无既有数据）时隐藏取消按钮，强制填写
+        cancelBtn.style.display = pre ? '' : 'none';
+        titleEl.textContent = pre ? '修改留校信息' : '请填写留校信息';
+        mask.classList.remove('hidden');
+        // 自动聚焦第一个输入框
+        setTimeout(function () {
+          if (form.elements.name) form.elements.name.focus();
+        }, 50);
+      }
+
+      function closeModal() {
+        mask.classList.add('hidden');
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var data = {};
+        FIELDS.forEach(function (k) {
+          data[k] = (form.elements[k].value || '').trim();
+        });
+        saveData(data);
+        render(data);
+        closeModal();
+      });
+
+      cancelBtn.addEventListener('click', closeModal);
+      document.getElementById('edit-btn').addEventListener('click', function () {
+        openModal(getData());
+      });
+
+      // 点击遮罩空白处关闭（仅在非首次模式）
+      mask.addEventListener('click', function (e) {
+        if (e.target === mask && getData()) {
+          closeModal();
+        }
+      });
+
+      // === 初始化 ===
+      var saved = getData();
+      if (saved) {
+        render(saved);
+      } else {
+        fillPlaceholder();
+        openModal(null);
+      }
+
       // 交互式触摸防伪 (点击屏幕任意位置生成带姓名的水波纹)
       function createRipple(e) {
         var x = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0].clientX);
         var y = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0].clientY);
         if (x === undefined || y === undefined) return;
+        if (mask && !mask.classList.contains('hidden')) return; // 弹窗打开时不触发涟漪
 
         var ripple = document.createElement('div');
         ripple.className = 'touch-ripple';
-        ripple.innerHTML = '<span class="ripple-text">杜阳佟</span>';
+        ripple.innerHTML = '<span class="ripple-text">' + (currentName || '') + '</span>';
 
         var size = 60;
         ripple.style.width = size + 'px';
@@ -592,7 +953,13 @@
 
       // 基础防调试：仅用于普通浏览器操作拦截，不能替代服务器端访问控制。
       document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-      document.addEventListener('selectstart', function (e) { e.preventDefault(); });
+      document.addEventListener('selectstart', function (e) {
+        // 允许表单内选择文本
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) {
+          return;
+        }
+        e.preventDefault();
+      });
       document.addEventListener('copy', function (e) { e.preventDefault(); });
       document.addEventListener('keydown', function (e) {
         var key = (e.key || '').toLowerCase();
