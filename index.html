@@ -612,6 +612,152 @@
       background: #f2f2f7;
       color: #007aff;
     }
+
+    /* === 扫描通行卡片 === */
+    .scan-card {
+      background: linear-gradient(135deg, #34c759 0%, #2aa0e0 100%);
+      border-radius: 14px;
+      padding: 22px 18px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(52, 199, 89, 0.28);
+      animation: fadeUp 0.4s ease 0.18s both;
+    }
+
+    .scan-card .scan-sub {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 12px;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .scan-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      color: #34c759;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 26px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.15s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .scan-btn:active {
+      transform: scale(0.96);
+    }
+
+    .scan-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* === 扫描模态 === */
+    .scan-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 10002;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scan-mask.hidden {
+      display: none;
+    }
+
+    .scan-head {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: calc(14px + env(safe-area-inset-top)) 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+    }
+
+    .scan-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .scan-close {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #qr-reader {
+      width: 88vw;
+      max-width: 420px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    #qr-reader video {
+      border-radius: 14px;
+      object-fit: cover;
+    }
+
+    .scan-tip {
+      margin-top: 18px;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 13px;
+      text-align: center;
+      padding: 0 24px;
+    }
+
+    /* === Toast === */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(40px + env(safe-area-inset-bottom));
+      transform: translate(-50%, 20px);
+      background: rgba(0, 0, 0, 0.88);
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 10003;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      max-width: 86vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .toast.ok {
+      background: rgba(52, 199, 89, 0.96);
+    }
+
+    .toast.err {
+      background: rgba(255, 59, 48, 0.96);
+    }
   </style>
 </head>
 
@@ -656,6 +802,21 @@
           该同学已获批留校资格，当前处于有效期内
         </div>
       </div>
+    </div>
+
+    <!-- 扫描宿舍通行二维码 -->
+    <div class="scan-card">
+      <div class="scan-sub">出入请先扫描宿舍通行二维码</div>
+      <button class="scan-btn" id="scan-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+          <path d="M14 14h3v3"></path>
+          <path d="M21 21h-4"></path>
+        </svg>
+        扫描宿舍通行二维码
+      </button>
     </div>
 
     <!-- 人员信息 -->
@@ -762,6 +923,20 @@
     </div>
   </div>
 
+  <!-- 扫描模态 -->
+  <div class="scan-mask hidden" id="scan-mask">
+    <div class="scan-head">
+      <span class="scan-title">扫描通行二维码</span>
+      <button class="scan-close" id="scan-close" type="button" aria-label="关闭">×</button>
+    </div>
+    <div id="qr-reader"></div>
+    <div class="scan-tip">将二维码对准框内即可自动识别</div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     (function () {
       var WEEK = ['日', '一', '二', '三', '四', '五', '六'];
@@ -923,6 +1098,92 @@
         fillPlaceholder();
         openModal(null);
       }
+
+      // === 二维码扫描通行 ===
+      var scanBtn = document.getElementById('scan-btn');
+      var scanMask = document.getElementById('scan-mask');
+      var scanClose = document.getElementById('scan-close');
+      var toastEl = document.getElementById('toast');
+      var html5QrCode = null;
+      var scanning = false;
+
+      function showToast(text, type) {
+        toastEl.textContent = text;
+        toastEl.className = 'toast ' + (type === 'err' ? 'err' : 'ok');
+        void toastEl.offsetWidth; // 强制重排以重启动画
+        toastEl.classList.add('show');
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(function () {
+          toastEl.classList.remove('show');
+        }, 2600);
+      }
+
+      function stopScan() {
+        if (html5QrCode && scanning) {
+          scanning = false;
+          html5QrCode.stop().then(function () {
+            html5QrCode.clear();
+          }).catch(function () {});
+        }
+      }
+
+      function closeScan() {
+        stopScan();
+        scanMask.classList.add('hidden');
+      }
+
+      function startScan() {
+        if (typeof Html5Qrcode === 'undefined') {
+          showToast('扫描组件加载失败，请检查网络', 'err');
+          return;
+        }
+        if (scanning) return;
+        scanMask.classList.remove('hidden');
+        scanning = true;
+        try {
+          html5QrCode = new Html5Qrcode('qr-reader', { verbose: false });
+        } catch (e) {
+          scanning = false;
+          scanMask.classList.add('hidden');
+          showToast('扫描初始化失败', 'err');
+          return;
+        }
+        html5QrCode.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.333334 },
+          function (decodedText) {
+            // 扫到任意二维码，立即通过并跳转后续
+            stopScan();
+            scanMask.classList.add('hidden');
+            showToast('✓ 通行验证通过', 'ok');
+            var info = document.querySelector('.list-group');
+            if (info && info.scrollIntoView) {
+              info.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          },
+          function (errorMessage) {
+            // 每帧未识别，忽略
+          }
+        ).catch(function (err) {
+          scanning = false;
+          scanMask.classList.add('hidden');
+          var name = err && err.name;
+          var msg = '无法启动扫描，请检查摄像头权限';
+          if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+            msg = '摄像头权限被拒绝，请在浏览器设置中允许后重试';
+          } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+            msg = '未检测到摄像头设备';
+          } else if (name === 'NotReadableError') {
+            msg = '摄像头被其他程序占用，请关闭后重试';
+          } else if (name === 'NotSupportedError' || name === 'TypeError') {
+            msg = '当前环境不支持摄像头扫描（需 HTTPS 或 localhost）';
+          }
+          showToast(msg, 'err');
+        });
+      }
+
+      scanBtn.addEventListener('click', startScan);
+      scanClose.addEventListener('click', closeScan);
 
       // 交互式触摸防伪 (点击屏幕任意位置生成带姓名的水波纹)
       function createRipple(e) {
