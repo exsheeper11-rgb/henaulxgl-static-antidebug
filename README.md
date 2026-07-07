@@ -8,8 +8,11 @@
 
 直接打开 `index.html` 即可，不需要后端服务。
 
-## 文件
+## 页面结构
 
-- `index.html`：静态页面入口
+- `index.html`：扫码入口页。打开后自动启动摄像头扫描二维码，扫到任意二维码后自动跳转到信息页 `info.html`。
+- `info.html`：留校人员信息展示页。首次访问弹窗录入信息并保存到浏览器 localStorage，后续直接展示；底部「修改个人信息」可重新编辑。
 - `images/henau_top2.png`：顶部 logo
 - `favicon.ico`：站点图标
+
+> 摄像头扫描需在 HTTPS 或 localhost 环境下运行（GitHub Pages 默认 HTTPS，满足）。移动端 iOS 首次需点击屏幕触发摄像头权限。
