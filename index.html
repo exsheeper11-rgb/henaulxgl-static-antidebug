@@ -265,6 +265,7 @@
         showToast('✓ 通行验证通过', 'ok');
         tip.textContent = '正在跳转...';
         setTimeout(function () {
+          try { sessionStorage.setItem('henau_scan_passed', '1'); } catch (e) {}
           window.location.href = 'info.html';
         }, 700);
       }
